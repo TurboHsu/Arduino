@@ -1,0 +1,9 @@
+curl "http://192.168.10.163/api?token=TurboCloudIOT&clear=1&text=Hey!&cx=0&cy=10&size=4"
+sleep 1
+curl "http://192.168.10.163/api?token=TurboCloudIOT&clear=1&text=Its%20me!&cx=0&cy=10&size=3"
+sleep 1
+curl "http://192.168.10.163/api?token=TurboCloudIOT&clear=1&text=My%20name%20is%20TurboHsu.&cx=0&cy=10&size=2"
+sleep 1
+curl "http://192.168.10.163/api?token=TurboCloudIOT&clear=1&text=Nice%20to%20meet%20you!&cx=0&cy=10&size=2"
+sleep 1
+curl "http://192.168.10.163/api?token=TurboCloudIOT&clear=1&text=&cx=0&cy=10&size=1"

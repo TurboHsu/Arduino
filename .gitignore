@@ -1,0 +1,10 @@
+# Ignore dirs
+.vscode/
+*.dev/
+*.private/
+*.test/
+
+# Ignore private files
+*.dev.*
+*.private.*
+*.exe
