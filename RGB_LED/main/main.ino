@@ -91,22 +91,17 @@ void clockDisplay() {
   timeClient.update();
   if (lastSysTimeCLK + 1000 <= millis()) {
       lastSysTimeCLK = millis();
+      displayTime[0] = digiDisplay.encodeDigit(timeClient.getHours() / 10);
+      displayTime[1] = digiDisplay.encodeDigit(timeClient.getHours() % 10);
+      displayTime[2] = digiDisplay.encodeDigit(timeClient.getMinutes() / 10);
+      displayTime[3] = digiDisplay.encodeDigit(timeClient.getMinutes() % 10);
       if (isCLKPointON == false) {
-        displayTime[0] = digiDisplay.encodeDigit(timeClient.getHours() / 10);
-        displayTime[1] = digiDisplay.encodeDigit(timeClient.getHours() % 10);
-        displayTime[2] = digiDisplay.encodeDigit(timeClient.getMinutes() / 10);
-        displayTime[3] = digiDisplay.encodeDigit(timeClient.getMinutes() % 10);
-        digiDisplay.setSegments(displayTime, 4, 0);
         isCLKPointON = true;
       } else {
-        displayTime[0] = digiDisplay.encodeDigit(timeClient.getHours() / 10);
-        displayTime[1] = digiDisplay.encodeDigit(timeClient.getHours() % 10);
-        displayTime[2] = digiDisplay.encodeDigit(timeClient.getMinutes() / 10);
-        displayTime[3] = digiDisplay.encodeDigit(timeClient.getMinutes() % 10);
         displayTime[1] |= 128;    
-        digiDisplay.setSegments(displayTime, 4, 0);
         isCLKPointON = false;
       }
+      digiDisplay.setSegments(displayTime, 4, 0);
     } else if (lastSysTimeCLK > millis()) { //After millis reset, lastSysTimeLED must be bigger.
       lastSysTimeCLK = millis();
   }
