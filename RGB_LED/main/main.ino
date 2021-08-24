@@ -4,13 +4,18 @@
       LED Counts: 12
       LED Connect -> D8
       Button Connect -> D5
-    Version 0.0.1
+      Digit CLK -> D1
+      Digit DIO -> D2
+    Version 0.0.2
                     For CY
 */
 #include <FastLED.h>
 #include <ESP8266WiFi.h>
 #include <WiFiUdp.h>
 #include <NTPClient.h>
+#include <Arduino.h>
+#include <TM1637Display.h>
+
 
 //Config
 #define NUM_LEDS 12
@@ -22,11 +27,15 @@ const char *wifiPassword = "";
 WiFiClient client;
 WiFiUDP ntpUDP;
 NTPClient timeClient(ntpUDP,"ntp1.aliyun.com",60*60*8,30*60*1000);
+#define CLK 5
+#define DIO 4
+TM1637Display digiDisplay(CLK, DIO);
 
 //Vars
 int ledRGBCount , ledRGBState , RGBMode;
-unsigned long int lastSysTimeLED , lastSysTimeBTN;
-bool isChangedBTN;
+unsigned long int lastSysTimeLED , lastSysTimeBTN , lastSysTimeCLK;
+bool isChangedBTN , isCLKPointON;
+uint8_t displayTime[4];
 
 void setup() {
   Serial.begin(115200);
@@ -37,6 +46,7 @@ void setup() {
   pinMode(LED_BUILTIN, OUTPUT);
 
   FastLED.addLeds<NEOPIXEL, DATA_PIN>(leds, NUM_LEDS);
+  digiDisplay.setBrightness(0x0f);
 
   Serial.println("[I] TurboCloud IOT System started. \n   Application: RGB Clock\n   Version: v0.0.1");
 
@@ -64,6 +74,8 @@ void setup() {
 
   lastSysTimeLED = millis();
   lastSysTimeBTN = millis();
+  lastSysTimeCLK = millis();
+  isCLKPointON = false;  
   ledRGBCount = 0;
   ledRGBState = 0;
   RGBMode = 0;
@@ -77,8 +89,27 @@ void loop() {
 
 void clockDisplay() {
   timeClient.update();
-  //Serial.println(timeClient.getFormattedTime().c_str());
-  //timeClient.getHours() timeClient.getMinutes()
+  if (lastSysTimeCLK + 1000 <= millis()) {
+      lastSysTimeCLK = millis();
+      if (isCLKPointON == false) {
+        displayTime[0] = digiDisplay.encodeDigit(timeClient.getHours() / 10);
+        displayTime[1] = digiDisplay.encodeDigit(timeClient.getHours() % 10);
+        displayTime[2] = digiDisplay.encodeDigit(timeClient.getMinutes() / 10);
+        displayTime[3] = digiDisplay.encodeDigit(timeClient.getMinutes() % 10);
+        digiDisplay.setSegments(displayTime, 4, 0);
+        isCLKPointON = true;
+      } else {
+        displayTime[0] = digiDisplay.encodeDigit(timeClient.getHours() / 10);
+        displayTime[1] = digiDisplay.encodeDigit(timeClient.getHours() % 10);
+        displayTime[2] = digiDisplay.encodeDigit(timeClient.getMinutes() / 10);
+        displayTime[3] = digiDisplay.encodeDigit(timeClient.getMinutes() % 10);
+        displayTime[1] |= 128;    
+        digiDisplay.setSegments(displayTime, 4, 0);
+        isCLKPointON = false;
+      }
+    } else if (lastSysTimeCLK > millis()) { //After millis reset, lastSysTimeLED must be bigger.
+      lastSysTimeCLK = millis();
+  }
 }
 
 void buttonDetect() {
