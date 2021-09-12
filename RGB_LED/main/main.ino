@@ -100,7 +100,7 @@ void timeUpdate() {
   if (lastSysTimeUpdate + 3600000 <= millis()) { //One hour once
     timeClient.update();
     lastSysTimeUpdate = millis();
-  } else if (lastSysTimeUpdate > millis()) { //After millis reset, lastSysTimeLED must be bigger.
+  } else if (lastSysTimeUpdate > millis()) { //After millis reset, lastSysTimeUpdate must be bigger.
     lastSysTimeUpdate = millis();
   }
 }
