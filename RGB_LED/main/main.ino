@@ -21,7 +21,7 @@
 #define NUM_LEDS 12
 #define DATA_PIN 15
 #define DELAY_MS 5
-CRGB leds[NUM_LEDS];
+CRGB leds[NUM_LEDS];  
 const char *wifiSsid = "";
 const char *wifiPassword = "";
 WiFiClient client;
@@ -33,7 +33,7 @@ TM1637Display digiDisplay(CLK, DIO);
 
 //Vars
 int ledRGBCount , ledRGBState , RGBMode;
-unsigned long int lastSysTimeLED , lastSysTimeBTN , lastSysTimeCLK;
+unsigned long int lastSysTimeLED , lastSysTimeBTN , lastSysTimeCLK , lastSysTimeUpdate;
 bool isChangedBTN , isCLKPointON;
 uint8_t displayTime[4];
 
@@ -71,10 +71,18 @@ void setup() {
   digitalWrite(LED_BUILTIN, HIGH);
 
   Serial.println("[I] WIFI Connected!");
+  
+  timeClient.update();
+  displayTime[0] = digiDisplay.encodeDigit(timeClient.getHours() / 10);
+  displayTime[1] = digiDisplay.encodeDigit(timeClient.getHours() % 10);
+  displayTime[2] = digiDisplay.encodeDigit(timeClient.getMinutes() / 10);
+  displayTime[3] = digiDisplay.encodeDigit(timeClient.getMinutes() % 10);
+  digiDisplay.setSegments(displayTime, 4, 0);
 
   lastSysTimeLED = millis();
   lastSysTimeBTN = millis();
   lastSysTimeCLK = millis();
+  lastSysTimeUpdate = millis();
   isCLKPointON = false;  
   ledRGBCount = 0;
   ledRGBState = 0;
@@ -82,13 +90,22 @@ void setup() {
 }
 
 void loop() {
+  timeUpdate();
   ledDisplay();
   buttonDetect();
   clockDisplay();
 }
 
+void timeUpdate() {
+  if (lastSysTimeUpdate + 3600000 <= millis()) { //One hour once
+    timeClient.update();
+    lastSysTimeUpdate = millis();
+  } else if (lastSysTimeUpdate > millis()) { //After millis reset, lastSysTimeLED must be bigger.
+    lastSysTimeUpdate = millis();
+  }
+}
+
 void clockDisplay() {
-  timeClient.update();
   if (lastSysTimeCLK + 1000 <= millis()) {
       lastSysTimeCLK = millis();
       displayTime[0] = digiDisplay.encodeDigit(timeClient.getHours() / 10);
@@ -102,7 +119,7 @@ void clockDisplay() {
         isCLKPointON = false;
       }
       digiDisplay.setSegments(displayTime, 4, 0);
-    } else if (lastSysTimeCLK > millis()) { //After millis reset, lastSysTimeLED must be bigger.
+  } else if (lastSysTimeCLK > millis()) { //After millis reset, lastSysTimeLED must be bigger.
       lastSysTimeCLK = millis();
   }
 }
